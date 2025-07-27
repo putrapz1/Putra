@@ -1,0 +1,32 @@
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
+});
+
+client.on('qr', (qr) => {
+    qrcode.generate(qr, { small: true });
+    console.log('Scan QR di WhatsApp Web...');
+});
+
+client.on('ready', () => {
+    console.log('✅ Bot siap!');
+});
+
+client.on('message', async (msg) => {
+    if (msg.body === '!linkgrup') {
+        const chat = await msg.getChat();
+        if (chat.isGroup && chat.participants.find(p => p.isAdmin)) {
+            const inviteCode = await chat.getInviteCode();
+            msg.reply(`📎 Link Grup: https://chat.whatsapp.com/${inviteCode}`);
+        } else {
+            msg.reply('❌ Hanya admin grup yang bisa pakai perintah ini.');
+        }
+    }
+});
+
+client.initialize();
